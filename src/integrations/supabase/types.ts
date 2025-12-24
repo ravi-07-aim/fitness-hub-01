@@ -73,6 +73,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           id: string
           updated_at: string
@@ -80,6 +81,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           id?: string
           updated_at?: string
@@ -87,11 +89,48 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           id?: string
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      workout_records: {
+        Row: {
+          completed_at: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          level: string | null
+          notes: string | null
+          user_id: string
+          workout_name: string
+          workout_type: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          level?: string | null
+          notes?: string | null
+          user_id: string
+          workout_name: string
+          workout_type: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          level?: string | null
+          notes?: string | null
+          user_id?: string
+          workout_name?: string
+          workout_type?: string
         }
         Relationships: []
       }
