@@ -50,10 +50,10 @@ const Navbar = ({ userEmail, showBack = false, backLabel = 'Back to Home', backP
             <button
               onClick={handleLogout}
               disabled={loggingOut}
-              className={`bg-gradient-to-r from-primary to-fitness-red-dark text-primary-foreground px-6 py-2 rounded-full font-semibold uppercase tracking-wider transition-all ${
+              className={`bg-primary text-primary-foreground px-6 py-2 rounded-full font-semibold uppercase tracking-wider transition-all ${
                 loggingOut 
-                  ? 'bg-muted cursor-not-allowed' 
-                  : 'hover:-translate-y-0.5 hover:shadow-glow-red-intense'
+                  ? 'bg-muted cursor-not-allowed opacity-50' 
+                  : 'hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)]'
               }`}
             >
               {loggingOut ? 'Logging out...' : 'Logout'}

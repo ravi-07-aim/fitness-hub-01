@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import FloatingParticles from '@/components/FloatingParticles';
 import Navbar from '@/components/Navbar';
 import FeatureCard from '@/components/FeatureCard';
 
-const Home = () => {
+const Workout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,59 +42,59 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background text-foreground overflow-x-hidden">
       <FloatingParticles />
-      <Navbar userEmail={user?.email} />
+      <Navbar showBack backLabel="Back to Home" backPath="/" />
 
       <header className="text-center pt-32 pb-12 px-8 bg-primary/10 border-b-[3px] border-primary mt-[70px]">
         <h1 className="text-4xl md:text-5xl font-bold text-primary drop-shadow-[0_0_20px_hsla(0,100%,50%,0.6)] mb-4 tracking-wider animate-slideUp">
-          Fitness Hub Dashboard
+          💪 Workout Dashboard
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slideUp" style={{ animationDelay: '0.3s' }}>
-          Monitor your key health metrics, access smart calculators, and explore upcoming fitness tools in one place.
+          Choose your workout plan and level to get started on your fitness journey.
         </p>
       </header>
 
       <section className="max-w-[900px] mx-auto py-12 px-4 md:px-8 pb-16">
         <h2 className="text-3xl font-bold text-primary drop-shadow-[0_0_12px_hsla(0,100%,50%,0.6)] mb-2">
-          Quick Access
+          Workout Plans
         </h2>
         <p className="text-muted-foreground mb-8">
-          Jump directly into the main tools of Fitness Hub.
+          Select a workout plan to view exercises for your level.
         </p>
 
         <div className="flex flex-col gap-5">
           <FeatureCard
-            icon="🏋️"
-            title="BMI Calculator"
-            description="Calculate your Body Mass Index and track your health metrics over time. Get personalized recommendations based on your results."
-            buttonText="Open Calculator"
-            onClick={() => navigate('/bmi')}
+            icon="🏃"
+            title="Full Body Plan"
+            description="Complete workout targeting all major muscle groups. Perfect for overall fitness and balanced strength development."
+            buttonText="Select Level"
+            onClick={() => navigate('/workout/full-body')}
             iconColor="text-fitness-red"
           />
 
           <FeatureCard
             icon="💪"
-            title="Workout Plans"
-            description="Access structured workout plans for full body, upper body, and lower body. Choose your level from beginner to advanced."
-            buttonText="Start Workout"
-            onClick={() => navigate('/workout')}
+            title="Upper Body Plan"
+            description="Focus on chest, back, shoulders, and arms. Build upper body strength and definition with targeted exercises."
+            buttonText="Select Level"
+            onClick={() => navigate('/workout/upper-body')}
             iconColor="text-fitness-red-glow"
           />
 
           <FeatureCard
-            icon="⚽"
-            title="Sports Guide"
-            description="Learn rules, warm-ups, and drills for various sports including Cricket, Football, Volleyball, Kabaddi, and Athletics."
-            buttonText="Explore Sports"
-            onClick={() => navigate('/sports')}
+            icon="🦵"
+            title="Lower Body Plan"
+            description="Target legs, glutes, and core. Develop lower body power and stability for athletic performance."
+            buttonText="Select Level"
+            onClick={() => navigate('/workout/lower-body')}
             iconColor="text-orange-400"
           />
 
           <FeatureCard
-            icon="🤖"
-            title="FitBot - AI Coach"
-            description="Get personalized fitness, health, and sports advice from our AI-powered coach. Ask anything about workouts, nutrition, or training tips."
-            buttonText="Chat Now"
-            onClick={() => navigate('/chatbot')}
+            icon="📖"
+            title="Exercise Guides"
+            description="Detailed guides for proper form and technique. Learn how to perform each exercise safely and effectively."
+            buttonText="View Guides"
+            onClick={() => navigate('/workout/guides')}
             iconColor="text-fitness-red"
           />
         </div>
@@ -103,4 +103,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Workout;

@@ -20,9 +20,11 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+type AuthMode = 'login' | 'register' | 'forgot';
+
 const Auth = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   
@@ -112,6 +114,37 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    if (!email || !z.string().email().safeParse(email).success) {
+      setErrors({ email: 'Please enter a valid email address' });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset link sent! Check your email.');
+      setMode('login');
+    }
+    setLoading(false);
+  };
+
+  const getTitle = () => {
+    switch (mode) {
+      case 'login': return 'Login';
+      case 'register': return 'Register';
+      case 'forgot': return 'Reset Password';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex items-center justify-center text-foreground overflow-hidden">
       <FloatingParticles />
@@ -119,34 +152,36 @@ const Auth = () => {
       <div className="bg-background/90 p-8 rounded-2xl shadow-[0_20px_40px_hsla(0,100%,50%,0.3)] border-2 border-primary w-full max-w-md backdrop-blur-lg animate-slideUp relative z-10 mx-4">
         <div className="text-center mb-8">
           <h2 className="text-primary text-3xl font-bold drop-shadow-[0_0_10px_hsla(0,100%,50%,0.5)]">
-            {isLogin ? 'Login' : 'Register'}
+            {getTitle()}
           </h2>
         </div>
 
-        <div className="flex bg-primary/20 rounded-full p-1 mb-8">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-3 rounded-full font-medium transition-all ${
-              isLogin 
-                ? 'bg-primary text-primary-foreground shadow-glow-red' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-3 rounded-full font-medium transition-all ${
-              !isLogin 
-                ? 'bg-primary text-primary-foreground shadow-glow-red' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Register
-          </button>
-        </div>
+        {mode !== 'forgot' && (
+          <div className="flex bg-primary/20 rounded-full p-1 mb-8">
+            <button
+              onClick={() => setMode('login')}
+              className={`flex-1 py-3 rounded-full font-medium transition-all ${
+                mode === 'login' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setMode('register')}
+              className={`flex-1 py-3 rounded-full font-medium transition-all ${
+                mode === 'register' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+        )}
 
-        {isLogin ? (
+        {mode === 'login' && (
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block mb-2 text-primary font-medium">Email</label>
@@ -181,14 +216,24 @@ const Auth = () => {
             </div>
 
             <button
+              type="button"
+              onClick={() => setMode('forgot')}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Forgot password?
+            </button>
+
+            <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-primary to-fitness-red-dark text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:shadow-glow-red-intense disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-        ) : (
+        )}
+
+        {mode === 'register' && (
           <form onSubmit={handleRegister} className="space-y-5">
             <div>
               <label className="block mb-2 text-primary font-medium">Username</label>
@@ -257,9 +302,46 @@ const Auth = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-primary to-fitness-red-dark text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:shadow-glow-red-intense disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Register'}
+            </button>
+          </form>
+        )}
+
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="space-y-6">
+            <p className="text-muted-foreground text-center mb-4">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+            
+            <div>
+              <label className="block mb-2 text-primary font-medium">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                className="w-full px-4 py-3 bg-foreground/10 border-2 border-primary/30 rounded-lg text-foreground placeholder:text-foreground/60 focus:outline-none focus:border-primary focus:shadow-[0_0_20px_hsla(0,100%,50%,0.3)] transition-all"
+                required
+              />
+              {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Sending...' : 'Send Reset Link'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className="w-full text-center text-muted-foreground hover:text-primary transition-colors"
+            >
+              ← Back to Login
             </button>
           </form>
         )}

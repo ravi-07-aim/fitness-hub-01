@@ -25,7 +25,7 @@ const FeatureCard = ({ icon, title, description, buttonText, onClick, iconColor 
         </div>
       </div>
       <button 
-        className="self-end bg-gradient-to-r from-primary to-fitness-red-dark text-primary-foreground px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-wider shadow-glow-red-intense transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_22px_hsla(0,100%,50%,0.6)] relative z-10"
+        className="self-end bg-primary text-primary-foreground px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] relative z-10"
         onClick={(e) => {
           e.stopPropagation();
           onClick();
