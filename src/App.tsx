@@ -12,6 +12,8 @@ import WorkoutPlan from "./pages/WorkoutPlan";
 import ExerciseGuides from "./pages/ExerciseGuides";
 import Sports from "./pages/Sports";
 import SportDetail from "./pages/SportDetail";
+import Profile from "./pages/Profile";
+import WorkoutRecords from "./pages/WorkoutRecords";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/workout/guides" element={<ExerciseGuides />} />
           <Route path="/sports" element={<Sports />} />
           <Route path="/sports/:sport" element={<SportDetail />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/workout-records" element={<WorkoutRecords />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

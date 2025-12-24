@@ -81,6 +81,15 @@ const Home = () => {
           />
 
           <FeatureCard
+            icon="📊"
+            title="Workout Records"
+            description="Track your daily workouts and monitor your progress over time. Log exercises, duration, and notes for each session."
+            buttonText="View Records"
+            onClick={() => navigate('/workout-records')}
+            iconColor="text-green-400"
+          />
+
+          <FeatureCard
             icon="⚽"
             title="Sports Guide"
             description="Learn rules, warm-ups, and drills for various sports including Cricket, Football, Volleyball, Kabaddi, and Athletics."
@@ -96,6 +105,15 @@ const Home = () => {
             buttonText="Chat Now"
             onClick={() => navigate('/chatbot')}
             iconColor="text-fitness-red"
+          />
+
+          <FeatureCard
+            icon="👤"
+            title="Profile Settings"
+            description="Manage your profile, change your username, update your password, and customize your profile picture."
+            buttonText="Edit Profile"
+            onClick={() => navigate('/profile')}
+            iconColor="text-blue-400"
           />
         </div>
       </section>
