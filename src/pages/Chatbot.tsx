@@ -254,7 +254,7 @@ const Chatbot = () => {
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="px-8 py-4 bg-gradient-to-r from-primary to-fitness-red-dark text-primary-foreground rounded-full font-bold uppercase tracking-wider shadow-glow-red-intense transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_hsla(0,100%,50%,0.55)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               Send
             </button>

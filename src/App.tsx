@@ -7,6 +7,11 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import BMI from "./pages/BMI";
 import Chatbot from "./pages/Chatbot";
+import Workout from "./pages/Workout";
+import WorkoutPlan from "./pages/WorkoutPlan";
+import ExerciseGuides from "./pages/ExerciseGuides";
+import Sports from "./pages/Sports";
+import SportDetail from "./pages/SportDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +27,11 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/bmi" element={<BMI />} />
           <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/workout" element={<Workout />} />
+          <Route path="/workout/:plan" element={<WorkoutPlan />} />
+          <Route path="/workout/guides" element={<ExerciseGuides />} />
+          <Route path="/sports" element={<Sports />} />
+          <Route path="/sports/:sport" element={<SportDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
