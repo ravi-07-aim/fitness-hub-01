@@ -20,7 +20,7 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-type AuthMode = 'login' | 'register' | 'forgot';
+type AuthMode = 'login' | 'register' | 'forgot' | 'verify-otp';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -34,6 +34,11 @@ const Auth = () => {
   const [username, setUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // OTP fields
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -50,6 +55,14 @@ const Auth = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
 
   const togglePassword = (field: string) => {
     setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
@@ -78,6 +91,79 @@ const Auth = () => {
     }
   };
 
+  const sendOTP = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { email, action: 'send' }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success('Verification code sent to your email!');
+        setOtpSent(true);
+        setResendTimer(60);
+        setMode('verify-otp');
+      } else {
+        throw new Error(data.message || 'Failed to send OTP');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOTP = async () => {
+    if (otp.length !== 6) {
+      setErrors({ otp: 'Please enter a 6-digit code' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { email, action: 'verify', otp }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Email verified, now complete registration
+        await completeRegistration();
+      } else {
+        setErrors({ otp: data.message || 'Invalid verification code' });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeRegistration = async () => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { username }
+      }
+    });
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        toast.error('This email is already registered. Please login instead.');
+        setMode('login');
+      } else {
+        toast.error(error.message);
+      }
+    } else {
+      toast.success('Account created successfully!');
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -92,26 +178,8 @@ const Auth = () => {
       return;
     }
 
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { username }
-      }
-    });
-
-    if (error) {
-      if (error.message.includes('already registered')) {
-        toast.error('This email is already registered. Please login instead.');
-      } else {
-        toast.error(error.message);
-      }
-      setLoading(false);
-    } else {
-      toast.success('Account created successfully!');
-    }
+    // Send OTP for email verification
+    await sendOTP();
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -137,11 +205,17 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+    await sendOTP();
+  };
+
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Login';
       case 'register': return 'Register';
       case 'forgot': return 'Reset Password';
+      case 'verify-otp': return 'Verify Email';
     }
   };
 
@@ -156,7 +230,7 @@ const Auth = () => {
           </h2>
         </div>
 
-        {mode !== 'forgot' && (
+        {mode !== 'forgot' && mode !== 'verify-otp' && (
           <div className="flex bg-primary/20 rounded-full p-1 mb-8">
             <button
               onClick={() => setMode('login')}
@@ -304,9 +378,65 @@ const Auth = () => {
               disabled={loading}
               className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : 'Register'}
+              {loading ? 'Sending verification...' : 'Register'}
             </button>
           </form>
+        )}
+
+        {mode === 'verify-otp' && (
+          <div className="space-y-6">
+            <p className="text-muted-foreground text-center">
+              We've sent a 6-digit verification code to <span className="text-primary font-medium">{email}</span>
+            </p>
+            
+            <div>
+              <label className="block mb-2 text-primary font-medium text-center">Enter Verification Code</label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setOtp(value);
+                  setErrors({});
+                }}
+                placeholder="000000"
+                maxLength={6}
+                className="w-full px-4 py-4 bg-foreground/10 border-2 border-primary/30 rounded-lg text-foreground text-center text-2xl tracking-[0.5em] font-mono placeholder:text-foreground/30 focus:outline-none focus:border-primary focus:shadow-[0_0_20px_hsla(0,100%,50%,0.3)] transition-all"
+              />
+              {errors.otp && <p className="text-destructive text-sm mt-2 text-center">{errors.otp}</p>}
+            </div>
+
+            <button
+              onClick={verifyOTP}
+              disabled={loading || otp.length !== 6}
+              className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_6px_18px_hsla(0,100%,50%,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Verifying...' : 'Verify & Create Account'}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                disabled={resendTimer > 0 || loading}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+              >
+                {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Didn't receive the code? Resend"}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode('register');
+                setOtp('');
+                setOtpSent(false);
+              }}
+              className="w-full text-center text-muted-foreground hover:text-primary transition-colors"
+            >
+              ← Back to Register
+            </button>
+          </div>
         )}
 
         {mode === 'forgot' && (
