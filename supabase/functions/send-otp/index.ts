@@ -64,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Fitness Hub <onboarding@resend.dev>",
+          from: "Fitness Hub <noreply@fitness-hub.co>",
           to: [email],
           subject: "Your Verification Code - Fitness Hub",
           html: `
