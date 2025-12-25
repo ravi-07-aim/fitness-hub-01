@@ -57,10 +57,24 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Send email with OTP using Resend API
+      if (!RESEND_API_KEY) {
+        console.error("Missing RESEND_API_KEY secret");
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Email service is not configured. Please try again later.",
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+
       const emailResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${RESEND_API_KEY}`,
+          Authorization: `Bearer ${RESEND_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -105,8 +119,40 @@ const handler = async (req: Request): Promise<Response> => {
         }),
       });
 
-      const emailResult = await emailResponse.json();
-      console.log("Email sent:", emailResult);
+      const raw = await emailResponse.text();
+      let emailResult: any = null;
+      try {
+        emailResult = raw ? JSON.parse(raw) : null;
+      } catch {
+        emailResult = raw;
+      }
+
+      console.log("Resend response:", {
+        ok: emailResponse.ok,
+        status: emailResponse.status,
+        result: emailResult,
+      });
+
+      if (!emailResponse.ok) {
+        // If email sending fails, remove the OTP so the user isn't stuck with a code they never received.
+        await supabase.from("email_verifications").delete().eq("email", email);
+
+        const providerMessage =
+          (emailResult && typeof emailResult === "object" && (emailResult.message || emailResult.error))
+            ? (emailResult.message || emailResult.error)
+            : "Email provider rejected the request";
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: providerMessage,
+          }),
+          {
+            status: 502,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, message: "OTP sent successfully" }),
